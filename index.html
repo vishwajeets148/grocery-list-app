@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link type="text/css" rel="stylesheet" href="./style.css"  />
+
+</head>
+<body>
+
+
+<div class="main">
+    <h1>Grocery List</h1>
+    <div class="inpDiv">
+        <div class="inner">
+            <input type="text" name="" placeholder="Add an item..." id="userInp" />
+            <button class="themebtn" onclick="addData('all')">Add Item</button>
+        </div>
+        <div class="inner">
+            <button class="deletebtn" onclick="deleteAllData()" >Delete All Items</button>
+            <button class="deletebtn" onclick="deleteAllChecked()" >Delete Checked Items</button>
+            
+        </div>
+    </div>
+    <div class="listDiv">
+        <ul>
+            
+              <li>
+                <input type="checkbox" name="">
+                <span>item</span>
+                <button>Delete</button>
+             </li>
+        </ul>
+    </div>
+    <div class="btnDiv">
+        <button class="themebtn" onclick="showData('all')" >All Item - 0 </button>
+        <button class="themebtn"  onclick="showData('purchased')">All Purchased - 0</button>
+        <button class="themebtn" onclick="showData('remaining')">All Remaining - 0 </button>
+    </div>
+    
+</div>
+
+<script type="text/javascript">
+    const userInp= document.getElementById('userInp')
+
+    const dataList = document.querySelector('.listDiv ul')
+    const allBtn = document.querySelectorAll('.btnDiv button')
+
+
+    const addData= ()=>{
+
+
+           let val = userInp.value
+           // console.log(val)
+
+           let data=JSON.parse(localStorage.getItem('myGroList')) ?? [];
+           let lastId = 0;
+
+           if(data.length != 0){
+              lastId=  data[0].id;
+              lastId++;
+           }
+     
+
+           let newObj = {
+            id: lastId,
+            item: val,
+            ifChecked: false
+           };
+
+           data.unshift(newObj);
+           localStorage.setItem('myGroList', JSON.stringify(data))
+           showData('all')
+    }
+
+    const showData = (filterData)=>{
+         document.getElementById("userInp").value = "";
+        // console.log(filterData)
+
+        dataList.innerHTML = '';
+        let data = JSON.parse(localStorage.getItem('myGroList')) ?? [];
+        let totalItem = data.length
+
+      let checkedData=  data.filter(el => el.ifChecked == true)
+      let uncheckedData=  data.filter(el => el.ifChecked == false)
+      let totalChecked = checkedData.length;
+
+      if(filterData == 'purchased'){
+        data = checkedData;
+      }
+      if(filterData == 'remaining'){
+          data = uncheckedData;
+      }
+       
+       data.forEach((item)=>{
+          let newLi = document.createElement('li');
+          let newCheckBox = document.createElement('input');
+          newCheckBox.type = 'checkbox';
+          newCheckBox.value= item.id ;
+
+          if(item.ifChecked == true){
+            newCheckBox.checked = true
+          }
+
+          newCheckBox.onclick= ()=>{
+           let dataArr=JSON.parse(localStorage.getItem('myGroList')) ?? [];
+           let checkId= newCheckBox.value
+           let founddata = dataArr.find((el)=> el.id == checkId);
+
+           if(founddata.ifChecked == true){
+            founddata.ifChecked = false
+           }
+           else{
+             founddata.ifChecked = true
+           }
+            localStorage.setItem('myGroList', JSON.stringify(dataArr))
+             showData('all')
+          }
+          newLi.appendChild(newCheckBox)
+            
+          let newSpan = document.createElement('span')
+          newSpan.innerText = item.item;
+          if(item.ifChecked == true){
+              newSpan.style.color = 'grey';
+              newSpan.style.textDecoration = 'line-through';
+          }
+          newLi.appendChild(newSpan)
+
+          let newBtn = document.createElement('button')
+          newBtn.innerText = 'Delete'
+          newLi.appendChild(newBtn)
+          newBtn.onclick= function (){
+             let dataArrToDelete = JSON.parse(localStorage.getItem('myGroList')) ?? [];
+               dataArrToDelete.forEach((element, index)=>{
+                if(element.id == item.id){
+                    dataArrToDelete.splice(index,1);
+                     localStorage.setItem('myGroList', JSON.stringify(dataArrToDelete))
+                     showData('all')
+                }
+               })
+          }
+
+
+          dataList.appendChild(newLi)
+          allBtn[0].innerHTML = `Total Items - ${totalItem}`
+          allBtn[1].innerHTML = `Purchased Items - ${totalChecked}`
+          allBtn[2].innerHTML = `Remaining Items - ${totalItem - totalChecked}`
+         
+       })
+    }
+    showData('all')
+
+
+
+   const deleteAllData=()=>{
+    localStorage.clear('myGroList')
+       showData('all')
+    }
+
+  const  deleteAllChecked=()=>{
+      let dataArr=JSON.parse(localStorage.getItem('myGroList')) ?? [];
+      let uncheckedData=  dataArr.filter(el => el.ifChecked == false)
+      localStorage.setItem('myGroList', JSON.stringify(uncheckedData))
+      showData('all')
+
+  }
+
+
+
+</script>
+
+
+</body>
+</html>
